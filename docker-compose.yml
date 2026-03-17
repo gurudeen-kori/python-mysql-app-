@@ -1,0 +1,52 @@
+version: "3.8"
+
+services:
+  app:
+    build: .
+    container_name: python-mysql-app
+    ports:
+      - "5000:5000"
+    networks:
+      - mysql-network
+    depends_on:
+      - mysql
+      - redis
+    restart: always
+    environment:
+      DB_HOST: python-mysql-db
+      DB_USER: root
+      DB_PASSWORD: test@123
+      DB_NAME: myapp
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+
+  mysql:
+    image: mysql:8
+    container_name: python-mysql-db
+    environment:
+      MYSQL_ROOT_PASSWORD: test@123
+      MYSQL_DATABASE: myapp
+    ports:
+      - "3306:3306"
+    networks:
+      - mysql-network
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 5
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mysql-network
+
+networks:
+  mysql-network:
+
+volumes:
+  mysql-data:
